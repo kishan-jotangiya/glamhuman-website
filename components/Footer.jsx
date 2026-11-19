@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="foot-grid">
           <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="foot-logo" src="/logo-light.svg" alt={BRAND} />
+            <img className="foot-logo" src="/logo.svg" alt={BRAND} />
             <p style={{ fontSize: 14.5, maxWidth: 320 }}>
               Premium at-home beauty services in {CITY}. Certified beauticians, sealed hygienic kits and honest pricing.
             </p>

@@ -7,7 +7,7 @@
 // WhatsApp:  WHATSAPP_* variables                     (lib/integrations/whatsapp.js) — optional
 import nodemailer from "nodemailer";
 import { BRAND, EMAIL } from "@/lib/data";
-import { findSub, validateBooking } from "@/lib/booking";
+import { priceBooking, travelNote, validateBooking } from "@/lib/booking";
 import { buildBookingEmail } from "@/lib/email/bookingEmail";
 import { formatDate } from "@/lib/dates";
 import { logBookingToSheet, sheetsEnabled } from "@/lib/integrations/sheets";
@@ -72,8 +72,8 @@ export async function POST(request) {
     mobile: String(body.mobile ?? ""),
     date: String(body.date ?? ""),
     time: String(body.time ?? ""),
-    service: String(body.service ?? ""),
-    sub: String(body.sub ?? ""),
+    services: strings(body.services),
+    subs: strings(body.subs),
     area: String(body.area ?? ""),
   };
   // Server is a little more lenient on notice than the form, in case the visitor's clock is off
@@ -86,12 +86,8 @@ export async function POST(request) {
     );
   }
 
-  // Sub-service + its price come from our own price list, never from the browser
-  const chosen = findSub(d.service, d.sub);
-  const pkg = chosen
-    ? { label: chosen.label, price: chosen.price, mrp: chosen.mrp, duration: chosen.duration }
-    : null;
-
+  // Options, prices and the travel charge come from our own price list, never from the browser
+  const bill = priceBooking(d.subs);
 
   const emailOn = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
   if (!emailOn && !sheetsEnabled()) {
@@ -115,9 +111,10 @@ export async function POST(request) {
           refPrefix: prefix,
           name: d.name.trim(),
           mobile: d.mobile,
-          service: d.service,
-          package: pkg?.label || "",
-          price: pkg?.price || "",
+          service: d.services.join(", "),
+          package: bill.items.map((i) => `${i.label} (₹${i.price})`).join("\n"),
+          price: bill.subtotal || "",
+          notes: bill.items.length ? `${travelNote(bill)} · Total ₹${bill.total}` : "",
           date: d.date,
           dateLabel: formatDate(d.date),
           time: d.time,
@@ -142,11 +139,11 @@ export async function POST(request) {
 
   // 2. Email the salon and WhatsApp the customer with that number
   const [email, whatsapp] = await Promise.allSettled([
-    emailOn ? sendBookingEmail(d, pkg, ref) : Promise.resolve({ skipped: true }),
+    emailOn ? sendBookingEmail(d, bill, ref) : Promise.resolve({ skipped: true }),
     sendWhatsAppConfirmation({
       name: d.name.trim().split(" ")[0],
       mobile: d.mobile,
-      service: pkg ? pkg.label : d.service,
+      service: bill.items.length ? bill.items.map((i) => i.label).join(", ") : d.services.join(", "),
       date: formatDate(d.date),
       time: d.time,
       ref,
@@ -172,7 +169,12 @@ export async function POST(request) {
   return Response.json({ ok: true, ref });
 }
 
-async function sendBookingEmail(d, pkg, ref) {
+// A list of strings from the request (anything else is dropped; capped so a bad request can't be huge)
+function strings(v) {
+  return Array.isArray(v) ? v.slice(0, 50).map((x) => String(x)) : [];
+}
+
+async function sendBookingEmail(d, bill, ref) {
   const { SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT, BOOKING_TO } = process.env;
   const port = Number(SMTP_PORT || 465);
   const transporter = nodemailer.createTransport({
@@ -181,7 +183,7 @@ async function sendBookingEmail(d, pkg, ref) {
     secure: port === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
-  const mail = buildBookingEmail({ d, pkg, ref });
+  const mail = buildBookingEmail({ d, bill, ref });
   await transporter.sendMail({ from: `"${BRAND} Bookings" <${SMTP_USER}>`, to: BOOKING_TO || EMAIL, ...mail });
   return { ok: true };
 }

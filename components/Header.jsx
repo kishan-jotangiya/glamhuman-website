@@ -50,9 +50,7 @@ export default function Header() {
       <div className="container">
         <a href="#home" className="logo" aria-label="GlamHuman home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="light" src="/logo-light.svg" alt="GlamHuman" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="dark" src="/logo.svg" alt="" aria-hidden="true" />
+          <img src="/logo.svg" alt="GlamHuman" />
         </a>
         <ul className={`nav-links${open ? ' open' : ''}`}>
           {LINKS.map(l => (

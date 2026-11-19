@@ -58,7 +58,7 @@ function doPost(e) {
       body.dateLabel || body.date || '',
       body.time || '',
       body.area || '',
-      '',
+      body.notes || '', // e.g. travel charges and total
     ]);
   } finally {
     lock.releaseLock();

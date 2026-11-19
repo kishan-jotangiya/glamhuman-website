@@ -10,6 +10,8 @@ export default function Dropdown({
   searchable, searchPlaceholder = 'Search…', layout = 'list', emptyText = 'No matches found',
   /** When given, a × button clears the selection (also Delete / Backspace on the field). */
   onClear,
+  /** Multi-select: `value` is an array; each click ticks/unticks an option straight away and the panel stays open. */
+  multiple = false,
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -30,7 +32,9 @@ export default function Dropdown({
 
   // Flat list of options in display order, for keyboard navigation
   const flat = useMemo(() => filtered.flatMap(g => g.options), [filtered]);
-  const selected = useMemo(() => groups.flatMap(g => g.options).find(o => o.value === value), [groups, value]);
+  const isSel = useCallback((o) => (multiple ? value.includes(o.value) : o.value === value), [multiple, value]);
+  const chosen = useMemo(() => groups.flatMap(g => g.options).filter(isSel), [groups, isSel]);
+  const shown = chosen.length ? chosen.map(o => o.display || o.label).join(', ') : '';
 
   const close = useCallback((refocus = false) => {
     setOpen(false);
@@ -45,7 +49,7 @@ export default function Dropdown({
   const openPanel = () => {
     setUp(shouldOpenUp(triggerRef.current, searchable ? 340 : 300));
     setOpen(true);
-    const idx = flat.findIndex(o => o.value === value);
+    const idx = flat.findIndex(isSel);
     setActive(idx >= 0 ? idx : flat.findIndex(o => !o.disabled));
   };
 
@@ -61,6 +65,10 @@ export default function Dropdown({
 
   const choose = (o) => {
     if (o.disabled) return;
+    if (multiple) {
+      onChange(value.includes(o.value) ? value.filter(v => v !== o.value) : [...value, o.value]);
+      return; // keep the panel open to pick more
+    }
     onChange(o.value);
     close(true);
   };
@@ -75,7 +83,7 @@ export default function Dropdown({
     setActive(i);
   };
 
-  const canClear = !!onClear && !!value;
+  const canClear = !!onClear && (multiple ? value.length > 0 : !!value);
   const clear = () => {
     if (open) close(false);
     onClear();
@@ -129,7 +137,8 @@ export default function Dropdown({
         onClick={() => (open ? close(false) : openPanel())}
       >
         <span className="dd-icon">{icon}</span>
-        <span className={`dd-value${selected ? '' : ' placeholder'}`}>{selected ? (selected.display || selected.label) : placeholder}</span>
+        <span className={`dd-value${shown ? '' : ' placeholder'}`}>{shown || placeholder}</span>
+        {multiple && chosen.length > 1 && <span className="dd-count">{chosen.length}</span>}
         {/* With a selection, the × takes the tick's place (the green border still shows it's valid) */}
         {canClear ? <span className="dd-clear-space" /> : <span className="dd-state">{valid && <IconCheck />}</span>}
         <IconChevron className="dd-chevron" />
@@ -150,7 +159,7 @@ export default function Dropdown({
             />
           </div>
         )}
-        <div className="dd-list" id={`${id}-list`} role="listbox" ref={listRef} tabIndex={-1}>
+        <div className="dd-list" id={`${id}-list`} role="listbox" aria-multiselectable={multiple || undefined} ref={listRef} tabIndex={-1}>
           {flat.length === 0 && <div className="dd-empty">{emptyText}</div>}
           {filtered.map((g, gi) => (
             <div className="dd-group" key={g.label ?? gi} role="group" aria-label={g.label}>
@@ -162,14 +171,15 @@ export default function Dropdown({
                   return (
                     <div
                       key={o.value} data-idx={i} role="option"
-                      aria-selected={o.value === value} aria-disabled={o.disabled}
-                      className={`dd-option${o.value === value ? ' selected' : ''}${i === active ? ' active' : ''}${o.disabled ? ' disabled' : ''}`}
+                      aria-selected={isSel(o)} aria-disabled={o.disabled}
+                      className={`dd-option${isSel(o) ? ' selected' : ''}${i === active ? ' active' : ''}${o.disabled ? ' disabled' : ''}`}
                       onMouseEnter={() => !o.disabled && setActive(i)}
                       onClick={() => choose(o)}
                     >
+                      {multiple && <span className="dd-box" aria-hidden="true">{isSel(o) && <IconCheck />}</span>}
                       <span>{o.label}</span>
                       {o.meta && <span className="dd-meta">{o.meta}</span>}
-                      {o.value === value && <IconCheck className="dd-tick" />}
+                      {!multiple && isSel(o) && <IconCheck className="dd-tick" />}
                     </div>
                   );
                 })}

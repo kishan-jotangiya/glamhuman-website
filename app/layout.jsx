@@ -1,4 +1,4 @@
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Cormorant_Garamond, Hind_Vadodara, Jost } from "next/font/google";
 import { BRAND, CITY, SITE_URL } from "@/lib/data";
 import "./globals.css";
 
@@ -15,10 +15,17 @@ const sans = Jost({
   variable: "--font-sans",
 });
 
+// Gujarati text (Jost and Cormorant have no Gujarati letters); same font as the intro video
+const gujarati = Hind_Vadodara({
+  subsets: ["gujarati"],
+  weight: ["400", "500", "600"],
+  variable: "--font-gujarati",
+});
+
 const title = `Home Salon Service in ${CITY} | Bridal Makeup, Facial, Waxing at Home – ${BRAND}`;
 const description =
   `Book certified beauticians at home in ${CITY}. Bridal & party makeup, facials, clean-up, de-tan, bleach, ` +
-  "waxing, threading, hair spa & hair colour at your doorstep. Offer prices, hygienic kits, no travel charges.";
+  "waxing, threading, hair spa & hair colour at your doorstep. Offer prices, hygienic kits, free travel on ₹500+.";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -51,7 +58,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en-IN" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en-IN" className={`${serif.variable} ${sans.variable} ${gujarati.variable}`}>
       <body>{children}</body>
     </html>
   );

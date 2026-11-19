@@ -21,7 +21,7 @@ function PriceRow({ category, group, item, onBook }) {
     <li>
       <div className="opt">
         <span className="name">{item.option}</span>
-        <span className="dur"><IconClock /> {item.duration}</span>
+        {item.duration && <span className="dur"><IconClock /> {item.duration}</span>}
       </div>
       <div className="amt">
         {item.off > 0 && <s>{rupees(item.mrp)}</s>}

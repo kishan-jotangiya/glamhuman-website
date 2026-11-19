@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Marquee from "@/components/Marquee";
 import Services from "@/components/Services";
+import VideoIntro from "@/components/VideoIntro";
 import Pricing from "@/components/Pricing";
 import Steps from "@/components/Steps";
 import WhyChooseUs from "@/components/WhyChooseUs";
@@ -30,6 +31,7 @@ export default function Home() {
       <main>
         <Hero />
         <Marquee />
+        <VideoIntro />
         <Services />
         <Pricing />
         <Steps />

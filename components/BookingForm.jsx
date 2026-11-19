@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { BOOKED_EVENT, BRAND, CITY, PHONE_DISPLAY, PHONE_TEL, waLink } from '@/lib/data';
-import { BOOKING_WINDOW_DAYS, FIELDS, SERVICES_ALLOWED, SLOTS, SUB_SERVICES, bookingSummary, findSub, slotIsPast, validateBooking } from '@/lib/booking';
+import {
+  BOOKING_WINDOW_DAYS, FIELDS, FREE_TRAVEL_FROM, SERVICES_ALLOWED, SLOTS, SUB_SERVICES, TRAVEL_FEE, bookingSummary, findSub, findSubByKey,
+  priceBooking, slotIsPast, subKey, validateBooking,
+} from '@/lib/booking';
 import { addDays, formatDate, toISO } from '@/lib/dates';
 import Dropdown from './form/Dropdown';
 import DatePicker from './form/DatePicker';
@@ -11,22 +14,29 @@ import {
   IconWhatsApp, Sparkle,
 } from './Icons';
 
-const EMPTY = { name: '', mobile: '', date: '', time: '', service: '', sub: '', area: '' };
+const EMPTY = { name: '', mobile: '', date: '', time: '', services: [], subs: [], area: '' };
 
 // Same services as the price list tabs
 const SERVICE_GROUPS = [{ options: SERVICES_ALLOWED.map(s => ({ value: s, label: s })) }];
 const rupees = (n) => `₹${n.toLocaleString('en-IN')}`;
 
-// Sub-service dropdown for a service: grouped like the price list, with prices on the right
-const subGroups = (service) => (SUB_SERVICES[service] || []).map(g => ({
-  label: g.group,
+// Options dropdown for the chosen services: grouped like the price list, with prices on the right
+const subGroups = (services) => services.flatMap(service => (SUB_SERVICES[service] || []).map(g => ({
+  label: services.length > 1 && g.group !== service ? `${service} · ${g.group}` : g.group,
   options: g.items.map(i => ({
-    value: i.label,
+    value: subKey(service, i.label),
     label: i.option === g.group ? g.group : i.option,
     meta: rupees(i.price),
-    display: `${i.label} · ${rupees(i.price)}`,
+    display: i.label,
   })),
-}));
+})));
+
+// Pre-selection from a service card / price list button: { service, sub } → { services, subs }
+const fromInitial = (initial) => {
+  const service = SERVICES_ALLOWED.includes(initial?.service) ? initial.service : '';
+  const sub = service && initial?.sub && findSub(service, initial.sub) ? subKey(service, initial.sub) : '';
+  return { services: service ? [service] : [], subs: sub ? [sub] : [] };
+};
 
 const nowMinutes = () => {
   const d = new Date();
@@ -40,11 +50,11 @@ const nowMinutes = () => {
  * - onDone, when given, adds a "Done" button to the thank-you screen (closes the popup)
  */
 export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }) {
-  const [data, setData] = useState(() => ({ ...EMPTY, service: initial?.service || '', sub: initial?.sub || '' }));
-  const [touched, setTouched] = useState(() => ({
-    ...(initial?.service ? { service: true } : {}),
-    ...(initial?.sub ? { sub: true } : {}),
-  }));
+  const [data, setData] = useState(() => ({ ...EMPTY, ...fromInitial(initial) }));
+  const [touched, setTouched] = useState(() => {
+    const pre = fromInitial(initial);
+    return { ...(pre.services.length ? { services: true } : {}), ...(pre.subs.length ? { subs: true } : {}) };
+  });
   const [shaking, setShaking] = useState(false);
   // idle → sending → (success | error)
   const [status, setStatus] = useState('idle');
@@ -63,12 +73,9 @@ export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }
 
   const maxDate = today ? addDays(today, BOOKING_WINDOW_DAYS) : undefined;
 
-  // Chosen sub-service with its price, e.g. { label: 'Gold Facial – VLCC', price: 954 }
-  const pkg = useMemo(() => {
-    const s = findSub(data.service, data.sub);
-    return s ? { label: s.label, price: s.price } : null;
-  }, [data.service, data.sub]);
-  const subOptions = useMemo(() => subGroups(data.service), [data.service]);
+  // Chosen options with prices, travel charge and total
+  const bill = useMemo(() => priceBooking(data.subs), [data.subs]);
+  const subOptions = useMemo(() => subGroups(data.services), [data.services]);
   const subCount = subOptions.reduce((n, g) => n + g.options.length, 0);
   const slotPast = (date, mins) => slotIsPast(today, nowMinutes(), date, mins);
 
@@ -92,8 +99,8 @@ export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }
     if (f === 'name' || f === 'area') value = value.replace(/\s{2,}/g, ' ');
     setData(d => {
       const next = { ...d, [f]: value };
-      // A new service has different options — clear a sub-service that no longer fits
-      if (f === 'service' && next.sub && !findSub(value, next.sub)) next.sub = '';
+      // Options of a service that was removed go too
+      if (f === 'services') next.subs = next.subs.filter(k => value.includes(findSubByKey(k)?.service));
       // A time chosen for another day may be in the past for today — clear it
       if (f === 'date' && next.time) {
         const slot = SLOTS.find(s => s.label === next.time);
@@ -103,14 +110,15 @@ export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }
     });
   };
   const touch = (f) => setTouched(t => (t[f] ? t : { ...t, [f]: true }));
-  // × on a field: empty it without showing an error straight away (clearing Service also clears its option)
+  // × on a field: empty it without showing an error straight away (clearing Services also clears the options)
   const clearField = (f) => {
-    set(f, '');
-    setTouched(t => ({ ...t, [f]: false, ...(f === 'service' ? { sub: false } : {}) }));
+    set(f, Array.isArray(EMPTY[f]) ? [] : '');
+    setTouched(t => ({ ...t, [f]: false, ...(f === 'services' ? { subs: false } : {}) }));
   };
-  const pickService = (v) => {
-    if (v !== data.service) setTouched(t => ({ ...t, sub: false }));
-    set('service', v);
+  // A newly added service still needs its option picked — don't flag that as an error straight away
+  const pickServices = (v) => {
+    if (v.some(x => !data.services.includes(x))) setTouched(t => ({ ...t, subs: false }));
+    set('services', v);
   };
 
   const handleSubmit = async (e) => {
@@ -134,7 +142,7 @@ export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.ok) throw new Error(json.error || 'We could not send your booking right now.');
-      setSubmitted({ data, pkg, ref: json.ref });
+      setSubmitted({ data, bill, ref: json.ref });
       setStatus('success');
       window.dispatchEvent(new Event(BOOKED_EVENT));
     } catch (err) {
@@ -159,7 +167,7 @@ export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }
     </div>
   );
 
-  const whatsappFallback = waLink(`Hi ${BRAND}! 👋\n\nI'd like to book a home salon appointment:\n\n${bookingSummary(data, pkg)}\n\nPlease confirm. Thank you!`);
+  const whatsappFallback = waLink(`Hi ${BRAND}! 👋\n\nI'd like to book a home salon appointment:\n\n${bookingSummary(data, bill)}\n\nPlease confirm. Thank you!`);
 
   return (
     <div className="booking" id={anchorId}>
@@ -176,9 +184,11 @@ export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }
             <p>We&apos;ve received your booking. Our team will call you on <b>+91 {submitted.data.mobile}</b> within 2 hours to confirm your appointment.</p>
             <div className="summary">
               <div><span>Reference</span><b>{submitted.ref}</b></div>
-              <div><span>Service</span><b>{submitted.data.service}</b></div>
-              {submitted.pkg && <div><span>Sub-service</span><b>{submitted.pkg.label}</b></div>}
-              {submitted.pkg && <div><span>Offer price</span><b>₹{submitted.pkg.price.toLocaleString('en-IN')}</b></div>}
+              <div><span>Services</span><b>{submitted.data.services.join(', ')}</b></div>
+              {submitted.bill.items.map(i => (
+                <div key={i.key}><span>{i.label}</span><b>{rupees(i.price)}</b></div>
+              ))}
+              {submitted.bill.travel > 0 && <div className="summary-note">Note: ₹{TRAVEL_FEE} travel charges apply below ₹{FREE_TRAVEL_FROM}.</div>}
               <div><span>Date</span><b>{formatDate(submitted.data.date)}</b></div>
               <div><span>Time</span><b>{submitted.data.time}</b></div>
               <div><span>Area</span><b>{submitted.data.area}</b></div>
@@ -252,30 +262,35 @@ export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }
                 {errorMsg('time')}
               </div>
 
-              <div className={fieldClass('service', true)}>
-                <label htmlFor={fid('service')}>Service <span className="req">*</span></label>
+              <div className={fieldClass('services', true)}>
+                <label htmlFor={fid('services')}>Services <span className="req">*</span> <small className="label-hint">pick one or more</small></label>
                 <Dropdown
-                  id={fid('service')} value={data.service} placeholder="Choose a service" icon={<IconSparkles />}
-                  groups={SERVICE_GROUPS}
-                  onChange={pickService} onClose={() => touch('service')} onClear={() => clearField('service')}
-                  invalid={!!showError('service')} valid={isValid('service')}
+                  id={fid('services')} value={data.services} placeholder="Choose services" icon={<IconSparkles />}
+                  groups={SERVICE_GROUPS} multiple
+                  onChange={pickServices} onClose={() => touch('services')} onClear={() => clearField('services')}
+                  invalid={!!showError('services')} valid={isValid('services')}
                 />
-                {errorMsg('service')}
+                {errorMsg('services')}
               </div>
 
-              {/* Appears once a service is chosen: the exact option from the price list */}
+              {/* Appears once a service is chosen: the exact options from the price list */}
               {subCount > 0 && (
-                <div className={`${fieldClass('sub', true)} sub-field`} key={data.service}>
-                  <label htmlFor={fid('sub')}>{data.service} option <span className="req">*</span></label>
+                <div className={`${fieldClass('subs', true)} sub-field`}>
+                  <label htmlFor={fid('subs')}>{data.services.length === 1 ? `${data.services[0]} options` : 'Options'} <span className="req">*</span></label>
                   <Dropdown
-                    id={fid('sub')} value={data.sub} placeholder={`Choose ${data.service.toLowerCase()} option`}
+                    id={fid('subs')} value={data.subs} placeholder="Choose options" multiple
                     icon={<IconList />} groups={subOptions}
-                    searchable={subCount > 8} searchPlaceholder={`Search ${data.service.toLowerCase()} options…`}
-                    onChange={v => set('sub', v)} onClose={() => touch('sub')} onClear={() => clearField('sub')}
-                    invalid={!!showError('sub')} valid={isValid('sub')}
+                    searchable={subCount > 8} searchPlaceholder="Search options…"
+                    onChange={v => set('subs', v)} onClose={() => touch('subs')} onClear={() => clearField('subs')}
+                    invalid={!!showError('subs')} valid={isValid('subs')}
                   />
-                  {errorMsg('sub')}
+                  {errorMsg('subs')}
                 </div>
+              )}
+
+              {/* Travel note, only when the bill is below ₹500 */}
+              {bill.travel > 0 && (
+                <p className="travel-note" aria-live="polite">Note: ₹{TRAVEL_FEE} travel charges apply below ₹{FREE_TRAVEL_FROM}.</p>
               )}
 
               <div className={fieldClass('area', true)}>
