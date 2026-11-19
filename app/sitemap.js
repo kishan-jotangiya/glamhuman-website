@@ -1,0 +1,6 @@
+import { SITE_URL } from '@/lib/data';
+
+// Served at /sitemap.xml — submit it in Google Search Console
+export default function sitemap() {
+  return [{ url: `${SITE_URL}/`, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 }];
+}
