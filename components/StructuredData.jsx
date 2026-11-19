@@ -1,7 +1,7 @@
 // Structured data (JSON-LD) that tells Google this is a beauty salon in Surat, with its services,
 // prices, hours, service areas and FAQs. Check it at https://search.google.com/test/rich-results
 import {
-  AREAS, BRAND, CITY, EMAIL, FAQS, FIRST_SLOT, LAST_SLOT, PHONE_TEL, PHOTOS, SITE_URL,
+  AREAS, BRAND, CITY, EMAIL, FACEBOOK, FAQS, FIRST_SLOT, INSTAGRAM, LAST_SLOT, PHONE_TEL, PHOTOS, SITE_URL,
 } from '@/lib/data';
 import { PRICING } from '@/lib/pricing';
 
@@ -18,6 +18,8 @@ const business = {
   logo: `${SITE_URL}/logo.svg`,
   image: [PHOTOS.hero, `${SITE_URL}/opengraph-image`],
   telephone: PHONE_TEL,
+  // Official social profiles — helps Google connect the website with Instagram
+  sameAs: [INSTAGRAM, FACEBOOK].filter(Boolean),
   email: EMAIL,
   priceRange: `₹${Math.min(...allPrices)} – ₹${Math.max(...allPrices).toLocaleString('en-IN')}`,
   currenciesAccepted: 'INR',

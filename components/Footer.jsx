@@ -13,8 +13,8 @@ export default function Footer() {
               Premium at-home beauty services in {CITY}. Certified beauticians, sealed hygienic kits and honest pricing.
             </p>
             <div className="socials">
-              <a href={INSTAGRAM} target="_blank" rel="noopener" aria-label="Instagram"><IconInstagram /></a>
-              <a href={FACEBOOK} target="_blank" rel="noopener" aria-label="Facebook"><IconFacebook /></a>
+              <a href={INSTAGRAM} target="_blank" rel="noopener" aria-label="GlamHuman on Instagram"><IconInstagram /></a>
+              {FACEBOOK && <a href={FACEBOOK} target="_blank" rel="noopener" aria-label="Facebook"><IconFacebook /></a>}
               <a href={waLink()} target="_blank" rel="noopener" aria-label="WhatsApp"><IconWhatsApp /></a>
             </div>
           </div>
