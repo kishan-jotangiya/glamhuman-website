@@ -16,7 +16,7 @@ const business = {
   description: `At-home beauty salon service in ${CITY}: bridal makeup, facials, de-tan, waxing, threading and hair care by certified beauticians.`,
   url: SITE_URL,
   logo: `${SITE_URL}/logo.svg`,
-  image: [PHOTOS.hero, `${SITE_URL}/opengraph-image`],
+  image: [`${SITE_URL}${PHOTOS.hero}`, `${SITE_URL}/opengraph-image`],
   telephone: PHONE_TEL,
   // Official social profiles — helps Google connect the website with Instagram
   sameAs: [INSTAGRAM, FACEBOOK].filter(Boolean),

@@ -9,7 +9,7 @@ export default function Cta() {
       <div className="container">
         <div className="cta reveal on-dark">
           <div className="cta-bg" data-parallax="0.18">
-            <Image src={PHOTOS.cta} alt="" fill sizes="(max-width: 1200px) 100vw, 1200px" />
+            <Image src={PHOTOS.cta} alt="" fill sizes="(max-width: 720px) 150vw, (max-width: 1200px) 100vw, 1200px" />
           </div>
           <span className="eyebrow"><Sparkle /> Your glow, our promise <Sparkle /></span>
           <h2>Ready to <span className="italic">glow?</span></h2>

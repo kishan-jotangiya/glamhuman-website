@@ -37,7 +37,7 @@ export default function Hero() {
       {/* Background layers are clipped here, not on .hero, so form dropdowns can extend past the hero */}
       <div className="hero-media">
         <div className="hero-bg" data-parallax="0.45">
-          <Image src={PHOTOS.hero} alt="Bride with professional bridal makeup" fill priority sizes="(max-width: 1080px) 100vw, 66vw" />
+          <Image src={PHOTOS.hero} alt="Bride with professional bridal makeup" fill priority sizes="(max-width: 1080px) 200vw, 66vw" />
         </div>
         <div className="hero-overlay" />
         <div className="sparkles">

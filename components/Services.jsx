@@ -37,7 +37,7 @@ export default function Services() {
             <div className="reveal" key={s.title} style={{ ['--d']: `${(i % 3) * 0.1}s` }}>
             <article className="svc" onPointerMove={tilt} onPointerLeave={untilt}>
               <span className="glare" aria-hidden="true" />
-              <Image src={s.img} alt={s.title} fill sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 33vw" />
+              <Image src={s.img} alt={s.title} fill sizes="(max-width: 640px) 160vw, (max-width: 1080px) 95vw, 64vw" />
               <span className="tag">{s.tag}</span>
               <span className="num">0{i + 1}</span>
               <div className="content">

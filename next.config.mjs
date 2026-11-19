@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [{ protocol: 'https', hostname: 'images.unsplash.com' }],
+    // Photos live in /public/images, so no outside image hosts are needed
+    formats: ['image/avif', 'image/webp'],
   },
 };
 
