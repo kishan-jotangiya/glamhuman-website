@@ -555,7 +555,7 @@ form.shake { animation: shake .5s; }
 
 /* ───────── Footer ───────── */
 footer { background: var(--plum); color: rgba(255, 255, 255, .7); padding: 90px 0 30px; position: relative; overflow: hidden; }
-footer::before { content: ''; position: absolute; left: -10%; top: -40%; width: 60%; height: 120%; background: radial-gradient(circle, rgba(148, 9, 68, .35), transparent 60%); }
+footer::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 70% 55% at 0% 0%, rgba(148, 9, 68, .38), transparent 70%), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(217, 174, 106, .08), transparent 70%); }
 footer .container { position: relative; }
 .foot-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.3fr; gap: 50px; }
 .foot-logo { height: 44px; width: auto; margin-bottom: 22px; }
@@ -716,9 +716,30 @@ footer .contact svg { width: 17px; height: 17px; color: var(--gold); flex-shrink
   .bm-sheet { width: 100%; margin: 0; animation: sheetUp .45s var(--ease); }
   .bm-sheet .booking { margin-top: 0; }
   .bm-sheet .booking::before { border-radius: 26px 26px 0 0; }
-  .bm-sheet .booking-inner { border-radius: 25px 25px 0 0; max-height: 92vh; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 30px 20px 22px; }
+  /* A real bottom sheet: page stays visible above it, grab handle on top */
+  .bm-sheet .booking-inner { border-radius: 25px 25px 0 0; max-height: 85vh; max-height: 85dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 40px 18px 0; }
+  .bm-sheet::before { content: ''; position: absolute; top: 9px; left: 50%; z-index: 6; width: 42px; height: 4px; margin-left: -21px; border-radius: 4px; background: rgba(28, 5, 16, .18); }
+  /* Soft fade under the handle and × so scrolled text doesn't run underneath them */
+  .bm-sheet::after { content: ''; position: absolute; top: 0; left: 0; right: 0; z-index: 4; height: 38px; border-radius: 25px 25px 0 0; pointer-events: none; background: linear-gradient(180deg, #fffbf9 45%, rgba(255, 251, 249, 0)); }
+  .bm-sheet .booking .sub { margin-bottom: 14px; }
+  .bm-sheet .form-grid { gap: 10px; }
+  /* Book Now stays visible at the bottom while the form scrolls */
+  .bm-sheet .booking .submit { position: sticky; bottom: 0; z-index: 4; margin-top: 16px; border-radius: 999px; box-shadow: 0 -18px 16px 6px rgba(255, 251, 249, .96), 0 10px 26px -8px rgba(148, 9, 68, .6); }
+  .bm-sheet .form-note { padding-bottom: 18px; }
   .bm-sheet .booking-inner::-webkit-scrollbar { display: none; }
   .bm-sheet .booking-badge { display: none; }
   .bm-sheet .booking h2 { font-size: 27px; }
-  .bm-close { top: 16px; right: 16px; }
+  .bm-close { top: 28px; right: 14px; }
+}
+
+/* ───────── Footer on phones: compact, Explore + Services side by side ───────── */
+@media (max-width: 640px) {
+  footer { padding: 60px 0 24px; }
+  .foot-grid { grid-template-columns: 1fr 1fr; gap: 34px 20px; }
+  .foot-grid > :first-child, .foot-grid > :last-child { grid-column: 1 / -1; }
+  .foot-logo { height: 38px; margin-bottom: 14px; }
+  footer h4 { font-size: 19px; margin-bottom: 12px; }
+  footer ul { gap: 9px; font-size: 14px; }
+  .socials { margin-top: 16px; }
+  .foot-bottom { margin-top: 36px; justify-content: center; text-align: center; }
 }
