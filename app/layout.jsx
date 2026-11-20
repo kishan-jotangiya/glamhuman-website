@@ -50,7 +50,7 @@ export const metadata = {
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
   category: "beauty",
   // Google Search Console ownership check (URL-prefix property)
-  verification: { google: "2vabskE0GavNIbPpHoUR8iBAc4noo8FSFIEu4W3zQ3U" },
+  verification: { google: "Tv6O6YDGpMdP7i63yYeYIp4C-Pb4ZMqEJdJvJteJSow" },
   other: { "geo.region": "IN-GJ", "geo.placename": CITY },
 };
 

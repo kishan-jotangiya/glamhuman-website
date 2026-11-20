@@ -41,8 +41,8 @@ button { font-family: inherit; }
 .btn svg { width: 18px; height: 18px; }
 
 /* ───────── Section heads ───────── */
-.section { padding: 110px 0; position: relative; }
-.section-head { text-align: center; max-width: 680px; margin: 0 auto 60px; }
+.section { padding: 80px 0; position: relative; }
+.section-head { text-align: center; max-width: 680px; margin: 0 auto 50px; }
 .eyebrow { display: inline-flex; align-items: center; gap: 10px; color: var(--wine); font-weight: 500; font-size: 13px; letter-spacing: .28em; text-transform: uppercase; margin-bottom: 16px; }
 .eyebrow svg { width: 14px; height: 14px; color: var(--gold); }
 .section-head h2, .h2 { font-size: clamp(36px, 5vw, 58px); margin-bottom: 16px; }
@@ -279,7 +279,7 @@ form.shake { animation: shake .5s; }
 /* ───────── Video intro ───────── */
 /* Gujarati words use a matching Gujarati font */
 .gu { font-family: var(--font-gujarati), var(--font-sans), sans-serif; font-weight: 500; color: var(--wine); }
-.video-intro { position: relative; overflow: hidden; padding: 100px 0 110px; background: linear-gradient(180deg, var(--blush), var(--cream) 75%); }
+.video-intro { position: relative; overflow: hidden; padding: 80px 0; background: linear-gradient(180deg, var(--blush), var(--cream) 75%); }
 .video-intro .container { isolation: isolate; }
 /* Dark video on the light section like a cinema screen. --vp (0→1) is set on scroll by VideoIntro:
    the screen grows to full size and its glow fades in as it comes into view. */
@@ -290,7 +290,7 @@ form.shake { animation: shake .5s; }
 .video-toggle:hover { background: var(--wine); transform: scale(1.06); }
 .video-toggle svg { width: 18px; height: 18px; }
 @media (max-width: 640px) {
-  .video-intro { padding: 70px 0 80px; }
+  .video-intro { padding: 56px 0; }
   .video-frame { border-radius: 18px; padding: 2px; }
   .video-frame video { border-radius: 16px; }
   .video-toggle { width: 40px; height: 40px; right: 12px; bottom: 12px; }
@@ -652,8 +652,8 @@ footer .contact svg { width: 17px; height: 17px; color: var(--wine); flex-shrink
 }
 @media (max-width: 640px) {
   .container { width: min(1200px, 100% - 32px); }
-  .section { padding: 80px 0; }
-  .section-head { margin-bottom: 44px; }
+  .section { padding: 56px 0; }
+  .section-head { margin-bottom: 36px; }
   .booking-inner { padding: 32px 22px 24px; }
   .form-grid { grid-template-columns: 1fr; }
   .services-grid, .testi-grid, .why-list, .foot-grid { grid-template-columns: 1fr; }

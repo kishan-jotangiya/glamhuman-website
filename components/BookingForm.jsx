@@ -43,13 +43,7 @@ const nowMinutes = () => {
   return d.getHours() * 60 + d.getMinutes();
 };
 
-/**
- * The booking form. Used twice: inline in the hero and inside the "Book Now" popup.
- * - idPrefix keeps field ids unique when both copies are on the page
- * - initial pre-selects { service, sub } (from a service card or the price list)
- * - onDone, when given, adds a "Done" button to the thank-you screen (closes the popup)
- */
-export default function BookingForm({ idPrefix = '', anchorId, initial, onDone }) {
+export default function BookingForm({ idPrefix = 'bf-', anchorId, initial, onDone }) {
   const [data, setData] = useState(() => ({ ...EMPTY, ...fromInitial(initial) }));
   const [touched, setTouched] = useState(() => {
     const pre = fromInitial(initial);
