@@ -49,6 +49,8 @@ export const metadata = {
   twitter: { card: "summary_large_image", title, description },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
   category: "beauty",
+  // Google Search Console ownership check (URL-prefix property)
+  verification: { google: "2vabskE0GavNIbPpHoUR8iBAc4noo8FSFIEu4W3zQ3U" },
   other: { "geo.region": "IN-GJ", "geo.placename": CITY },
 };
 
